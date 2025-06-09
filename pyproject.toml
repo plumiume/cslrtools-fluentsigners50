@@ -11,10 +11,10 @@ dependencies = [
     "argparse-class-namespace @ git+https://github.com/plumiume/argparse-class-namespace.git",
     "cslrtools @ git+https://github.com/plumiume/cslrtools.git",
     "halo>=0.0.31",
-    "numpy>=2.3.0",
+    "numpy>=2.0.0",
     "parse>=1.20.2",
     "torch>=2.0.0",
-    "tqdm>=4.67.1",
+    "tqdm>=4.0.0",
 ]
 
 [project.scripts]
