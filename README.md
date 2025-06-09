@@ -57,6 +57,9 @@ loaded = FluentSigners50.load("dataset.pkl")
 - cslrtools
 - lightning.pytorch (optional)
 
+## Dataset Reference
+- [FluentSigners-50 Project Page](https://krslproject.github.io/FluentSigners-50/)
+
 ## License
 
 [Apache License 2.0](./LICENSE)
