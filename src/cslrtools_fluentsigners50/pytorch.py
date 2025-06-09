@@ -140,7 +140,7 @@ class FluentSigners50:
         with Halo(
                 text=f'Saving dataset to {dst} ...', spinner='dots', enabled=spiner_enabled
             ), open(dst, 'wb') as f:
-            torch.save(self._dataset, f)
+            torch.save(self, f)
         print(f'✅ Saving dataset to {dst} finished.')
 
     @classmethod
