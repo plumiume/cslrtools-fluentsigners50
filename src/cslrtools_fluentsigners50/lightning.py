@@ -6,7 +6,6 @@ except ImportError:
         f"Please install it with 'pip install {__package__}[lightning]'"
     )
 
-import pickle
 from pathlib import Path
 import torch
 from cslrtools.dataset.pytorch import Dataset
@@ -26,17 +25,17 @@ class FluentSigners50DataModule(LightningDataModule[FluentSigners50Metadata]):
     @classmethod
     def load_or_create_cross_validataion_groups(
         cls,
-        groups_pkl: Path,
+        groups_pt: Path,
         dataset: Dataset[FluentSigners50Metadata],
         num_splits: int = 5,
         ):
 
-        if groups_pkl.exists():
-            groups: torch.Tensor = pickle.load(groups_pkl.open('rb'))
+        if groups_pt.exists():
+            groups: torch.Tensor = torch.load(groups_pt.open('rb'))
         else:
             people = set(m['person'] for m in dataset._metas)
             groups = torch.rand((len(people),)).argsort() % num_splits
-            pickle.dump(groups, groups_pkl.open('wb'))
+            torch.save(groups, groups_pt.open('wb'))
 
         return groups
 
