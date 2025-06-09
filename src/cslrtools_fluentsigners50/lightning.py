@@ -58,7 +58,7 @@ class FluentSigners50DataModule(LightningDataModule[FluentSigners50Metadata]):
                 stages=[
                     ['val', 'test']
                     if groups[mi['person']] == valid_idx
-                    else ['train']
+                    else ['fit']
                     for mi in dataset._metas
                 ],
                 common_kwargs=common_kwargs

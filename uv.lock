@@ -132,7 +132,8 @@ wheels = [
 
 [[package]]
 name = "cslrtools"
-source = { editable = "../cslrtools" }
+version = "0.1.dev9+g5de2e10"
+source = { git = "https://github.com/plumiume/cslrtools.git#5de2e100d56a191d580c947c8b7d36a3d549a10b" }
 dependencies = [
     { name = "torch" },
     { name = "torchaudio" },
@@ -142,14 +143,6 @@ dependencies = [
 lightning = [
     { name = "lightning" },
 ]
-
-[package.metadata]
-requires-dist = [
-    { name = "lightning", marker = "extra == 'lightning'", specifier = ">=2.0.0" },
-    { name = "torch", specifier = ">=2.0.0" },
-    { name = "torchaudio", specifier = ">=2.0.1" },
-]
-provides-extras = ["lightning"]
 
 [[package]]
 name = "cslrtools-fluentsigners50"
@@ -177,18 +170,18 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "argparse-class-namespace", git = "https://github.com/plumiume/argparse-class-namespace.git" },
-    { name = "cslrtools", editable = "../cslrtools" },
-    { name = "cslrtools", extras = ["lightning"], marker = "extra == 'lightning'", editable = "../cslrtools" },
+    { name = "cslrtools", git = "https://github.com/plumiume/cslrtools.git" },
+    { name = "cslrtools", extras = ["lightning"], marker = "extra == 'lightning'", git = "https://github.com/plumiume/cslrtools.git" },
     { name = "halo", specifier = ">=0.0.31" },
-    { name = "numpy", specifier = ">=2.3.0" },
+    { name = "numpy", specifier = ">=2.0.0" },
     { name = "parse", specifier = ">=1.20.2" },
     { name = "torch", specifier = ">=2.0.0" },
-    { name = "tqdm", specifier = ">=4.67.1" },
+    { name = "tqdm", specifier = ">=4.60.0" },
 ]
 provides-extras = ["lightning"]
 
 [package.metadata.requires-dev]
-dev = [{ name = "cslrtools", extras = ["lightning"], editable = "../cslrtools" }]
+dev = [{ name = "cslrtools", extras = ["lightning"], git = "https://github.com/plumiume/cslrtools.git" }]
 
 [[package]]
 name = "filelock"

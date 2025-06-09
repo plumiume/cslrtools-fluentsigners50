@@ -148,6 +148,6 @@ class FluentSigners50:
         with Halo(
                 text=f'Loading dataset from {src} ...', spinner='dots', enabled=spiner_enabled
             ), open(src, 'rb') as f: 
-            ret = torch.load(f, map_location='cpu')
+            ret = torch.load(f)
         print(f'✅ Loading dataset from {src} finished.')
         return ret
