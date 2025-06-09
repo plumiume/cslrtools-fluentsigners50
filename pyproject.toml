@@ -8,8 +8,8 @@ authors = [
 ]
 requires-python = ">=3.11"
 dependencies = [
-    "argparse-class-namespace",
-    "cslrtools",
+    "argparse-class-namespace @ git+https://github.com/plumiume/argparse-class-namespace.git",
+    "cslrtools @ gith+https://github.com/plumiume/cslrtools.git",
     "halo>=0.0.31",
     "numpy>=2.3.0",
     "parse>=1.20.2",
@@ -31,10 +31,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.version]
 source = "vcs"
-
-[tool.uv.sources]
-cslrtools = { git = "https://github.com/plumiume/cslrtools.git" }
-argparse-class-namespace = { git = "https://github.com/plumiume/argparse-class-namespace.git" }
 
 [dependency-groups]
 dev = [
