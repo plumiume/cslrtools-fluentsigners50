@@ -69,7 +69,7 @@ class FluentSigners50:
         if sample.suffix == '.csv':
             return torch.from_numpy(np.genfromtxt(sample, delimiter=',', encoding='utf8'))
         elif sample.suffix == '.npy':
-            return torch.from_numpy(np.load(sample, allow_pickle=True))
+            return torch.from_numpy(np.load(sample))
         else:
             raise ValueError(f"Unsupported file format: {sample.suffix}")
 

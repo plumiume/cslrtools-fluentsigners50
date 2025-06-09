@@ -9,7 +9,7 @@ authors = [
 requires-python = ">=3.11"
 dependencies = [
     "argparse-class-namespace @ git+https://github.com/plumiume/argparse-class-namespace.git",
-    "cslrtools @ git+https://github.com/plumiume/cslrtools.git",
+    "cslrtools",
     "halo>=0.0.31",
     "numpy>=2.0.0",
     "parse>=1.20.2",
@@ -34,6 +34,9 @@ source = "vcs"
 
 [tool.hatch.metadata]
 allow-direct-references = true
+
+[tool.uv.sources]
+cslrtools = { git = "https://github.com/plumiume/cslrtools.git" }
 
 [dependency-groups]
 dev = [
