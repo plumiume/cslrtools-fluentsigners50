@@ -26,11 +26,13 @@ class FluentSigners50DataModule(LightningDataModule[FluentSigners50Metadata]):
         cls,
         dataset: Dataset[FluentSigners50Metadata],
         num_splits: int = 5,
-        common_kwargs: LightningDataModule.DataLoaderCommonKwargs = {}
+        common_kwargs: LightningDataModule.DataLoaderCommonKwargs = {},
+        groups: torch.Tensor | None = None
         ):
 
-        people = set(m['person'] for m in dataset._metas)
-        groups = torch.rand((len(people),)).argsort() % num_splits
+        if groups is None:
+            people = set(m['person'] for m in dataset._metas)
+            groups = torch.rand((len(people),)).argsort() % num_splits
 
         for valid_idx in range(num_splits):
             yield cls(
@@ -43,3 +45,5 @@ class FluentSigners50DataModule(LightningDataModule[FluentSigners50Metadata]):
                 ],
                 common_kwargs=common_kwargs
             )
+
+        return groups
