@@ -17,7 +17,7 @@ def main():
     from halo import Halo
 
     with Halo(text='Waiting for Package import...', spinner='dots'):
-        from . import FluentSigners50
+        from .pytorch import FluentSigners50 
         from argparse_class_namespace import namespace
     print('✅ Waiting for Package import finished.')
 

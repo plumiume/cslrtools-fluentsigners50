@@ -10,7 +10,7 @@ import pickle
 from pathlib import Path
 import torch
 from cslrtools.dataset.pytorch import Dataset
-from . import FluentSigners50Metadata
+from .pytorch import FluentSigners50Metadata
 from cslrtools.dataset.lightning import LightningDataModule, StageString
 
 class FluentSigners50DataModule(LightningDataModule[FluentSigners50Metadata]):
