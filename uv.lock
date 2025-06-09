@@ -107,7 +107,7 @@ wheels = [
 [[package]]
 name = "argparse-class-namespace"
 version = "0.1.dev10+gcb2024a"
-source = { git = "ssh://git@gitlab.lee-lab.org/ikeda/argparse-class-namespace.git#cb2024afbc2664f7ccf6922fe6cbd4ef5c9a738f" }
+source = { git = "https://github.com/plumiume/argparse-class-namespace.git#cb2024afbc2664f7ccf6922fe6cbd4ef5c9a738f" }
 dependencies = [
     { name = "argcomplete" },
 ]
@@ -176,7 +176,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "argparse-class-namespace", git = "ssh://git@gitlab.lee-lab.org/ikeda/argparse-class-namespace.git" },
+    { name = "argparse-class-namespace", git = "https://github.com/plumiume/argparse-class-namespace.git" },
     { name = "cslrtools", editable = "../cslrtools" },
     { name = "cslrtools", extras = ["lightning"], marker = "extra == 'lightning'", editable = "../cslrtools" },
     { name = "halo", specifier = ">=0.0.31" },

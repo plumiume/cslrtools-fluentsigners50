@@ -33,8 +33,8 @@ build-backend = "hatchling.build"
 source = "vcs"
 
 [tool.uv.sources]
-argparse-class-namespace = { git = "ssh://git@gitlab.lee-lab.org/ikeda/argparse-class-namespace.git" }
 cslrtools = { path = "../cslrtools", editable = true }
+argparse-class-namespace = { git = "https://github.com/plumiume/argparse-class-namespace.git" }
 
 [dependency-groups]
 dev = [
