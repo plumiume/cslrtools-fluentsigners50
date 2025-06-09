@@ -9,7 +9,7 @@ authors = [
 requires-python = ">=3.11"
 dependencies = [
     "argparse-class-namespace @ git+https://github.com/plumiume/argparse-class-namespace.git",
-    "cslrtools @ gith+https://github.com/plumiume/cslrtools.git",
+    "cslrtools @ git+https://github.com/plumiume/cslrtools.git",
     "halo>=0.0.31",
     "numpy>=2.3.0",
     "parse>=1.20.2",
