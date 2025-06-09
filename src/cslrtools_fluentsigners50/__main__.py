@@ -1,13 +1,17 @@
-from argparse_class_namespace import namespace
-from . import FluentSigners50, _PathLike
-
 def main():
+
+    from halo import Halo
+
+    with Halo(text='Waiting for Package import...', spinner='dots'):
+        from . import FluentSigners50
+        from argparse_class_namespace import namespace
+    print('✅ Waiting for Package import finished.')
 
     @namespace
     class Args:
-        root: _PathLike
+        root: str
         landmarks: str
-        dst: _PathLike # .pkl
+        dst: str
         use_translation: bool = False
 
     ns = Args.parse_args()

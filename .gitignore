@@ -8,3 +8,8 @@ wheels/
 
 # Virtual environments
 .venv
+.python-version
+
+# Python Pickle files
+*.pkl
+*.pickle
