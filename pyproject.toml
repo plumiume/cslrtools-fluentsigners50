@@ -33,7 +33,7 @@ build-backend = "hatchling.build"
 source = "vcs"
 
 [tool.uv.sources]
-cslrtools = { path = "../cslrtools", editable = true }
+cslrtools = { git = "https://github.com/plumiume/cslrtools.git" }
 argparse-class-namespace = { git = "https://github.com/plumiume/argparse-class-namespace.git" }
 
 [dependency-groups]
