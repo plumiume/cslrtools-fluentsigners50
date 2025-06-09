@@ -14,7 +14,6 @@
 
 import csv
 from parse import parse, Result
-import pickle
 from itertools import chain
 from typing import TypedDict, cast, Self, Iterable
 from pathlib import Path
@@ -141,7 +140,7 @@ class FluentSigners50:
         with Halo(
                 text=f'Saving dataset to {dst} ...', spinner='dots', enabled=spiner_enabled
             ), open(dst, 'wb') as f:
-            pickle.dump(self, f)
+            torch.save(self._dataset, f)
         print(f'✅ Saving dataset to {dst} finished.')
 
     @classmethod
@@ -149,6 +148,6 @@ class FluentSigners50:
         with Halo(
                 text=f'Loading dataset from {src} ...', spinner='dots', enabled=spiner_enabled
             ), open(src, 'rb') as f: 
-            ret = pickle.load(f)
+            ret = torch.load(f, map_location='cpu')
         print(f'✅ Loading dataset from {src} finished.')
         return ret
