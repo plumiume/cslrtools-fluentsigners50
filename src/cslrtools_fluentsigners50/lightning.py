@@ -21,19 +21,25 @@ class FluentSigners50DataModule(LightningDataModule[FluentSigners50Metadata]):
         ):
         super().__init__(dataset, stages, common_kwargs)
 
-    def generate_cross_validation_splits_by_person(self, num_splits: int = 5):
+    @classmethod
+    def generate_cross_validation_splits_by_person(
+        cls,
+        dataset: Dataset[FluentSigners50Metadata],
+        num_splits: int = 5,
+        common_kwargs: LightningDataModule.DataLoaderCommonKwargs = {}
+        ):
 
-        people = set(m['person'] for m in self.dataset._metas)
+        people = set(m['person'] for m in dataset._metas)
         groups = torch.rand((len(people),)).argsort() % num_splits
 
         for valid_idx in range(num_splits):
-            yield self.__class__(
-                dataset=self.dataset,
+            yield cls(
+                dataset=dataset,
                 stages=[
                     ['val', 'test']
                     if groups[mi['person']] == valid_idx
                     else ['train']
-                    for mi in self.dataset._metas
+                    for mi in dataset._metas
                 ],
-                common_kwargs=self.common_kwargs
+                common_kwargs=common_kwargs
             )
