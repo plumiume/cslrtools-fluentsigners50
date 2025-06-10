@@ -19,7 +19,7 @@ from typing import TypedDict, cast, Self, Iterable
 from pathlib import Path
 from cslrtools.dataset.pytorch import Metadata, Dataset
 from threading import Thread
-from concurrent.futures import ThreadPoolExecutor, Future, wait
+from concurrent.futures import ThreadPoolExecutor, Future
 from tqdm import tqdm
 from halo import Halo
 import numpy as np
@@ -91,49 +91,67 @@ class FluentSigners50:
             list(csv.DictReader((root / "russian_translation.csv").open(encoding='utf8'), delimiter=","))
         )
 
+        futures: list[Future[torch.Tensor]] = []
+        labels: list[list[str]] = []
+        metadata: list[FluentSigners50Metadata] = []
+
         pool = ThreadPoolExecutor(8)
 
-        with tqdm(
-            list(self.russian_translation if use_translation else self.gloss_annotation),
-            desc="Loading annotations",
-            disable=quiet,
-            ) as progress:
+        with (
+            tqdm(
+                iterable=self.russian_translation if use_translation else self.gloss_annotation,
+                desc="Loading annotations",
+                disable=quiet,
+                position=0,
+            ) as annotation_progress,
+            tqdm(
+                desc="Loading inputs",
+                position=1,
+            ) as input_progress,
+            ):
 
-            sequences = list(chain.from_iterable(
-                (
-                    FluentSigners50Item({
-                        # 'input': self._load_input(sample),
-                        'input': pool.submit(self._load_input, sample),
-                        'label': (ann['Translation'] if 'Translation' in ann else ann['Gloss']).split(),
-                        'metadata': FluentSigners50Metadata({
+            input_progress.total = 0
+
+            try:
+                for ann in cast(Iterable[GlossAnnotation | RussianTranslation], annotation_progress):
+                    sentence = root / landmarks / f'{ann["ID"]:0>3}'
+                    if not sentence.exists():
+                        continue
+
+                    for sample in sentence.iterdir():
+                        ftr = pool.submit(self._load_input, sample)
+                        ftr.add_done_callback(
+                            lambda ftr:
+                                input_progress.update()
+                        )
+                        lbl = (ann['Translation'] if 'Translation' in ann else ann['Gloss']).split()
+                        meta = FluentSigners50Metadata({
                             'person': (pr := cast(Result, parse(
                                 'P{person:d}_S{sentence:d}_{variation:d}', sample.stem
                             ))).named['person'],
                             'variation': pr.named['variation'],
                         })
-                    })
-                    for sample in sentence.iterdir()
-                )
-                for ann in cast(Iterable[GlossAnnotation | RussianTranslation], progress)
-                if (sentence := root / landmarks / f'{ann["ID"]:0>3}').exists()
-            ))
+                        
+                        input_progress.total += 1
+                        futures.append(ftr)
+                        labels.append(lbl)
+                        metadata.append(meta)
 
-        dataset_init_args = {
-            'inputs': list(tqdm(
-                (wait([item['input']]) and item['input'].result() for item in sequences),
-                total=len(sequences),
-                desc="Loading inputs",
-                disable=quiet
-            )),
-            'labels': [item['label'] for item in sequences],
-            'blank_label': ' ',
-            'metas': [item['metadata'] for item in sequences],
-        }
+                input_progress.pos = 0
+                pool.shutdown()
+
+            except KeyboardInterrupt as e:
+                pool.shutdown(wait=False, cancel_futures=True)
+                raise e
 
         with Halo(text="Creating dataset ...", spinner='dots', enabled=not quiet):
             self._dataset = Dataset[FluentSigners50Metadata].from_sequences(
-                **dataset_init_args
+                inputs=[ftr.result() for ftr in futures],
+                labels=labels,
+                blank_label=' ',
+                metas=metadata,
             )
+
         print('✅ Creating dataset finished.')
 
     def save(self, dst: _PathLike, spiner_enabled: bool = True):
