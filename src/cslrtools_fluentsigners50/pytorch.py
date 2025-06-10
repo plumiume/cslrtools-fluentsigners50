@@ -151,15 +151,14 @@ class FluentSigners50:
                 blank_label=' ',
                 metas=metadata,
             )
-
         print('✅ Creating dataset finished.')
 
     def save(self, dst: _PathLike, spiner_enabled: bool = True):
         with Halo(
-                text=f'Saving dataset to {dst} ...', spinner='dots', enabled=spiner_enabled
+                text=f'Exporting dataset to {dst} ...', spinner='dots', enabled=spiner_enabled
             ), open(dst, 'wb') as f:
             torch.save(self, f)
-        print(f'✅ Saving dataset to {dst} finished.')
+        print(f'✅ Exporting dataset to {dst} finished.')
 
     @classmethod
     def load(cls, src: _PathLike, spiner_enabled: bool = True) -> Self:

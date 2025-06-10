@@ -132,8 +132,8 @@ wheels = [
 
 [[package]]
 name = "cslrtools"
-version = "0.1.dev18+gd2686a0"
-source = { git = "https://github.com/plumiume/cslrtools.git#d2686a0f644d9acbf29b8da43d268b1d6acf4cba" }
+version = "0.1.dev24+gce1c7e9"
+source = { git = "https://github.com/plumiume/cslrtools.git#ce1c7e9706e3145b7b45381c5747d0bbdea8f529" }
 dependencies = [
     { name = "torch" },
     { name = "torchaudio" },
