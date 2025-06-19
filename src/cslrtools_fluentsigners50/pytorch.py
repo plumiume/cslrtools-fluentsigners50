@@ -15,7 +15,7 @@
 import csv
 from parse import parse, Result
 from itertools import chain
-from typing import TypedDict, cast, Self, Iterable
+from typing import TypedDict, Literal, cast, Self, Iterable
 from pathlib import Path
 from cslrtools.dataset.pytorch import Metadata, Dataset
 from threading import Thread
@@ -47,10 +47,12 @@ _PathLike = Path | str
 # └── russian_translation.csv
 
 class GlossAnnotation(TypedDict):
+    _tag: Literal['GlossAnnotation']
     ID: str
     Gloss: str
 
 class RussianTranslation(TypedDict):
+    _tag: Literal['RussianTranslation']
     ID: str
     Translation: str
 
@@ -58,38 +60,43 @@ class FluentSigners50Metadata(Metadata):
     person: int
     variation: int
 
-class FluentSigners50Item(TypedDict):
-    input: Future[torch.Tensor]
-    label: list[str]
-    metadata: FluentSigners50Metadata
-
 class FluentSigners50:
 
-    def _load_input(self, sample: Path) -> torch.Tensor:
+    def _load_input(self, sample: Path, dtype: torch.dtype = torch.float32) -> torch.Tensor:
         if sample.suffix == '.csv':
-            return torch.from_numpy(np.genfromtxt(sample, delimiter=',', encoding='utf8'))
+            ret = torch.from_numpy(np.genfromtxt(sample, delimiter=',', encoding='utf8'))
         elif sample.suffix == '.npy':
-            return torch.from_numpy(np.load(sample))
+            ret = torch.from_numpy(np.load(sample))
         else:
             raise ValueError(f"Unsupported file format: {sample.suffix}")
+        return ret.to(dtype=dtype)
 
     @property
     def dataset(self) -> Dataset[FluentSigners50Metadata]:
         return self._dataset
 
-    def __init__(self, root: _PathLike, landmarks: str, use_translation: bool = False, quiet: bool = False):
+    def __init__(
+        self,
+        root: _PathLike,
+        landmarks: str,
+        use_translation: bool = False,
+        quiet: bool = False,
+        dtype: torch.dtype = torch.float32,
+        ):
 
         root = Path(root)
 
-        self.gloss_annotation: list[GlossAnnotation] = cast(
-            list[GlossAnnotation],
-            list(csv.DictReader((root / "gloss_annotation.csv").open(encoding='utf8'), delimiter=","))
-        )
+        self.gloss_annotation = [
+            cast(GlossAnnotation, line | {'_tag': 'GlossAnnotation'})
+            for line in
+            csv.DictReader((root / "gloss_annotation.csv").open(encoding='utf8'), delimiter=",")
+        ]
 
-        self.russian_translation: list[RussianTranslation] = cast(
-            list[RussianTranslation],
-            list(csv.DictReader((root / "russian_translation.csv").open(encoding='utf8'), delimiter=","))
-        )
+        self.russian_translation = [
+            cast(RussianTranslation, line | {'_tag': 'RussianTranslation'})
+            for line in
+            csv.DictReader((root / "russian_translation.csv").open(encoding='utf8'), delimiter=",")
+        ]
 
         futures: list[Future[torch.Tensor]] = []
         labels: list[list[str]] = []
@@ -119,12 +126,16 @@ class FluentSigners50:
                         continue
 
                     for sample in sentence.iterdir():
-                        ftr = pool.submit(self._load_input, sample)
+                        ftr = pool.submit(self._load_input, sample, dtype)
                         ftr.add_done_callback(
                             lambda ftr:
                                 input_progress.update()
                         )
-                        lbl = (ann['Translation'] if 'Translation' in ann else ann['Gloss']).split()
+                        lbl = (
+                            ann['Translation']
+                            if ann['_tag'] == 'RussianTranslation'
+                            else ann['Gloss']
+                        ).split()
                         meta = FluentSigners50Metadata({
                             'person': (pr := cast(Result, parse(
                                 'P{person:d}_S{sentence:d}_{variation:d}', sample.stem
@@ -162,9 +173,15 @@ class FluentSigners50:
 
     @classmethod
     def load(cls, src: _PathLike, spiner_enabled: bool = True) -> Self:
+        torch.serialization.add_safe_globals([
+            cls,
+            FluentSigners50Metadata, RussianTranslation, GlossAnnotation,
+            Metadata, Dataset
+            ])
         with Halo(
                 text=f'Loading dataset from {src} ...', spinner='dots', enabled=spiner_enabled
-            ), open(src, 'rb') as f: 
-            ret = torch.load(f)
+            ), open(src, 'rb') as f:
+            ret = torch.load(f, weights_only=True)
         print(f'✅ Loading dataset from {src} finished.')
+        torch.serialization.clear_safe_globals()
         return ret
