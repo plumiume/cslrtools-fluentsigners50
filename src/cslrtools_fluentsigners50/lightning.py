@@ -18,9 +18,10 @@ class FluentSigners50DataModule(LightningDataModule[FluentSigners50Metadata]):
         self,
         dataset: Dataset[FluentSigners50Metadata],
         stages: list[list[StageString]],
+        filters: list[bool] | None = None,
         common_kwargs: LightningDataModule.DataLoaderCommonKwargs = {}
         ):
-        super().__init__(dataset, stages, common_kwargs)
+        super().__init__(dataset, stages, filters, common_kwargs)
 
     @classmethod
     def load_or_create_cross_validataion_groups(
@@ -44,6 +45,7 @@ class FluentSigners50DataModule(LightningDataModule[FluentSigners50Metadata]):
         cls,
         dataset: Dataset[FluentSigners50Metadata],
         num_splits: int = 5,
+        filters: list[bool] | None = None,
         common_kwargs: LightningDataModule.DataLoaderCommonKwargs = {},
         groups: torch.Tensor | None = None
         ):
@@ -61,6 +63,7 @@ class FluentSigners50DataModule(LightningDataModule[FluentSigners50Metadata]):
                     else ['fit']
                     for mi in dataset._metas
                 ],
+                filters=filters,
                 common_kwargs=common_kwargs
             )
 
