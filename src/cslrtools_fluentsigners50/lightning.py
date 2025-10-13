@@ -1,5 +1,5 @@
 try:
-    import lightning
+    import lightning # pyright: ignore[reportUnusedImport]
 except ImportError:
     raise ImportError(
         "lightning.pytorch is required to use LightningDataModule. "
@@ -34,7 +34,8 @@ class FluentSigners50DataModule(LightningDataModule[FluentSigners50Metadata]):
         if groups_pt.exists():
             groups: torch.Tensor = torch.load(groups_pt.open('rb'))
         else:
-            people = set(m['person'] for m in dataset._metas)
+            dataset_metas = dataset._metas # type: ignore[reportPrivateUsage]
+            people = set(m['person'] for m in dataset_metas)
             groups = torch.rand((len(people),)).argsort() % num_splits
             torch.save(groups, groups_pt.open('wb'))
 
@@ -50,8 +51,10 @@ class FluentSigners50DataModule(LightningDataModule[FluentSigners50Metadata]):
         groups: torch.Tensor | None = None
         ):
 
+        dataset_metas = dataset._metas # type: ignore[reportPrivateUsage]
+
         if groups is None:
-            people = set(m['person'] for m in dataset._metas)
+            people = set(m['person'] for m in dataset_metas)
             groups = torch.rand((len(people),)).argsort() % num_splits
 
         for valid_idx in range(num_splits):
@@ -61,7 +64,7 @@ class FluentSigners50DataModule(LightningDataModule[FluentSigners50Metadata]):
                     ['val', 'test']
                     if groups[mi['person']] == valid_idx
                     else ['fit']
-                    for mi in dataset._metas
+                    for mi in dataset_metas
                 ],
                 filters=filters,
                 common_kwargs=common_kwargs

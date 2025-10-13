@@ -1,4 +1,4 @@
-from argparse_class_namespace import namespace
+from clipar import namespace
 
 @namespace
 class Args:

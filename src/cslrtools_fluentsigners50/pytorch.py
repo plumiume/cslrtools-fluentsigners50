@@ -13,15 +13,13 @@
 # limitations under the License.
 
 import csv
-from parse import parse, Result
-from itertools import chain
+from parse import parse, Result # pyright: ignore[reportMissingTypeStubs, reportUnknownVariableType]
 from typing import TypedDict, Literal, cast, Self, Iterable
 from pathlib import Path
 from cslrtools.dataset.pytorch import Metadata, Dataset
-from threading import Thread
 from concurrent.futures import ThreadPoolExecutor, Future
 from tqdm import tqdm
-from halo import Halo
+from halo import Halo # pyright: ignore[reportMissingTypeStubs]
 import numpy as np
 import torch
 
@@ -51,10 +49,24 @@ class GlossAnnotation(TypedDict):
     ID: str
     Gloss: str
 
+def _as_gloss_annotation(d: dict[str, str]) -> GlossAnnotation:
+    return GlossAnnotation(
+        _tag='GlossAnnotation',
+        ID=d['ID'],
+        Gloss=d['Gloss']
+    )
+
 class RussianTranslation(TypedDict):
     _tag: Literal['RussianTranslation']
     ID: str
     Translation: str
+
+def _as_russian_translation(d: dict[str, str]) -> RussianTranslation:
+    return RussianTranslation(
+        _tag='RussianTranslation',
+        ID=d['ID'],
+        Translation=d['Translation']
+    )
 
 class FluentSigners50Metadata(Metadata):
     person: int
@@ -63,17 +75,23 @@ class FluentSigners50Metadata(Metadata):
 class FluentSigners50:
 
     def _load_input(self, sample: Path, dtype: torch.dtype = torch.float32) -> torch.Tensor:
+        if sample.is_dir():
+            sample = next(sample.glob('landmarks.*'), Path())
         if sample.suffix == '.csv':
-            ret = torch.from_numpy(np.genfromtxt(sample, delimiter=',', encoding='utf8'))
+            ret = torch.from_numpy( # pyright: ignore[reportUnknownMemberType]
+                np.genfromtxt(sample, delimiter=',', encoding='utf8')
+            )
         elif sample.suffix == '.npy':
-            ret = torch.from_numpy(np.load(sample))
+            ret = torch.from_numpy( # pyright: ignore[reportUnknownMemberType]
+                np.load(sample)
+            ) 
         else:
             raise ValueError(f"Unsupported file format: {sample.suffix}")
         return ret.to(dtype=dtype)
 
     @property
     def dataset(self) -> Dataset[FluentSigners50Metadata]:
-        return self._dataset
+        return self._dataset 
 
     def __init__(
         self,
@@ -87,13 +105,13 @@ class FluentSigners50:
         root = Path(root)
 
         self.gloss_annotation = [
-            cast(GlossAnnotation, line | {'_tag': 'GlossAnnotation'})
+            _as_gloss_annotation(line)
             for line in
             csv.DictReader((root / "gloss_annotation.csv").open(encoding='utf8'), delimiter=",")
         ]
 
-        self.russian_translation = [
-            cast(RussianTranslation, line | {'_tag': 'RussianTranslation'})
+        self.russian_translation: list[RussianTranslation] = [
+            _as_russian_translation(line)
             for line in
             csv.DictReader((root / "russian_translation.csv").open(encoding='utf8'), delimiter=",")
         ]
@@ -126,26 +144,38 @@ class FluentSigners50:
                         continue
 
                     for sample in sentence.iterdir():
-                        ftr = pool.submit(self._load_input, sample, dtype)
-                        ftr.add_done_callback(
-                            lambda ftr:
+                        
+                        future = pool.submit(self._load_input, sample, dtype)
+                        future.add_done_callback(
+                            lambda future:
                                 input_progress.update()
                         )
-                        lbl = (
+
+                        label = (
                             ann['Translation']
                             if ann['_tag'] == 'RussianTranslation'
                             else ann['Gloss']
                         ).split()
+
+                        parse_result = parse(
+                            'P{person:d}_S{sentence:d}_{variation:d}', sample.stem
+                        )
+                        if not isinstance(parse_result, Result):
+                            raise ValueError(f'Invalid file name: {sample}')
+                        named: dict[str, int] = parse_result.named # pyright: ignore[reportUnknownVariableType, reportUnknownMemberType]
+                        if 'person' not in named:
+                            raise ValueError(f'Invalid file name: {sample}')
+                        if 'variation' not in named:
+                            raise ValueError(f'Invalid file name: {sample}')
+                        
                         meta = FluentSigners50Metadata({
-                            'person': (pr := cast(Result, parse(
-                                'P{person:d}_S{sentence:d}_{variation:d}', sample.stem
-                            ))).named['person'],
-                            'variation': pr.named['variation'],
+                            'person': named['person'],
+                            'variation': named['variation'],
                         })
                         
                         input_progress.total += 1
-                        futures.append(ftr)
-                        labels.append(lbl)
+                        futures.append(future)
+                        labels.append(label)
                         metadata.append(meta)
 
                 input_progress.pos = 0
@@ -156,7 +186,7 @@ class FluentSigners50:
                 raise e
 
         with Halo(text="Creating dataset ...", spinner='dots', enabled=not quiet):
-            self._dataset = Dataset[FluentSigners50Metadata].from_sequences(
+            self._dataset = Dataset.from_sequences(
                 inputs=[ftr.result() for ftr in futures],
                 labels=labels,
                 blank_label=' ',
@@ -173,7 +203,7 @@ class FluentSigners50:
 
     @classmethod
     def load(cls, src: _PathLike, spiner_enabled: bool = True) -> Self:
-        torch.serialization.add_safe_globals([
+        torch.serialization.add_safe_globals([ # pyright: ignore[reportUnknownMemberType]
             cls,
             FluentSigners50Metadata, RussianTranslation, GlossAnnotation,
             Metadata, Dataset

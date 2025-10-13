@@ -12,23 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def main():
+from clipar import namespace
 
-    from halo import Halo
+@namespace
+class Args:
+    root: str
+    "Root directory of the FluentSigners50 dataset."
+    landmarks: str
+    "Path to the landmarks file."
+    dst: str
+    "Destination path to save the dataset."
+    use_translation: bool = False
+    "Whether to use translation in the dataset."
+
+def main_impl(ns: Args.T):
+
+    from halo import Halo # pyright: ignore[reportMissingTypeStubs]
 
     with Halo(text='Waiting for Package import...', spinner='dots'):
         from .pytorch import FluentSigners50 
-        from argparse_class_namespace import namespace
     print('✅ Waiting for Package import finished.')
-
-    @namespace
-    class Args:
-        root: str
-        landmarks: str
-        dst: str
-        use_translation: bool = False
-
-    ns = Args.parse_args()
 
     dataset = FluentSigners50(
         root=ns.root,
@@ -37,3 +40,12 @@ def main():
     )
 
     dataset.save(ns.dst)
+
+def main():
+
+    ns = Args.parse_args()
+
+    main_impl(ns)
+
+if __name__ == '__main__':
+    main()

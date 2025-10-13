@@ -21,10 +21,11 @@ pip install .[lightning]
 ## Usage
 
 ### Command Line
-
 ```sh
 python -m cslrtools_fluentsigners50 <dataset_root> <landmarks_dir> <output_pickle_file>
 ```
+
+> Note: If the new command-line argument (e.g., `--allow-outside-landmarks-dir`) is not set, `landmarks_dir` must be a subdirectory of `dataset_root`.
 
 ### Python API
 
