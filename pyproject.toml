@@ -20,6 +20,9 @@ dependencies = [
 [project.scripts]
 cslrtools-fluentsigners50 = "cslrtools_fluentsigners50.__main__:main"
 
+[project.entry-points."cslrtools.dataset.v2.torch.plugins"]
+fs50 = "cslrtools_fluentsigners50.v2.args:info"
+
 [project.optional-dependencies]
 lightning = [
     "cslrtools[lightning]",
